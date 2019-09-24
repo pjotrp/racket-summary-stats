@@ -1,0 +1,44 @@
+* Mining summary statistics with Racket
+
+This module fetches summary statistics, starting with the new EBI API
+described at https://www.ebi.ac.uk/gwas/summary-statistics and
+https://www.ebi.ac.uk/gwas/rest/docs/api. The general idea is to start
+from a gene (alias) or genome segment and find relevant SNPs and
+associated phenotypes. These in turn we can use in GeneNetwork to
+locate interesting hits related to mouse/rat genes and phenotypes.
+
+In the near future we may be adding more resources.
+
+* EBI Summary Statistics
+
+EBI is providing an update of their old GWAS resource in the form of
+an API that can get candidates. They also provide the classic
+downloadable tabular data resources which we do not want to use for
+two reasons:
+
+1. We want to use the latest information automatically
+2. For EBI it is easier to track use and fund future initiatives
+
+The latter reason is more important than meets the eye. These
+resources are *not* free.
+
+* Start with a gene
+
+Let's start with mouse gene [[https://www.wikidata.org/wiki/Q14860079][Shh]] (human alias SHH) and rat [[https://www.wikidata.org/wiki/Q24381323][Brca2]] (human
+alias BRCA2). For the human variant the [[https://www.wikidata.org/wiki/Q17853272][wikidata page for BRCA2]] points
+to the [[https://www.ncbi.nlm.nih.gov/gene/675][NCBI]] gene description (which is usefully elaborate). That page
+in turn points to the [[https://www.uniprot.org/uniprot/P51587][Uniprot]] resource.
+
+Wikidata also has the start and en position of the gene for two
+reference genomes. hg38 is known as [[https://www.wikidata.org/wiki/Q20966585][GRCh38.p2]] (2014) which is now at
+p13 (2019). So, which one does EBI use? GRCh38.p12 according to the
+[[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]] (October 2019).
+
+The [[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]] suggests the API supports searching by gene which should make
+a lookup easier. In the full API docs this query is shown
+
+: curl 'https://www.ebi.ac.uk/gwas/rest/api/singleNucleotidePolymorphisms/search/findByGene?geneName=BRCA2' -i -H 'Accept: application/json' > BRCA2.json
+
+results in a list of SNPs with top/curated associations. For summary statistics
+there is no lookup by gene yet - I have put in a request. So, for now
+we need to figure out the gene position first using the ENSEMBL API.
