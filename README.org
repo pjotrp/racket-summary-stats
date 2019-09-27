@@ -7,7 +7,13 @@ from a gene (alias) or genome segment and find relevant SNPs and
 associated phenotypes. These in turn we can use in GeneNetwork to
 locate interesting hits related to mouse/rat genes and phenotypes.
 
-In the near future we may be adding more resources.
+This 'discovery' tool is based on Wikidata and EBI Ensembl API which
+are both relatively stable resources.
+
+In the near future we may be adding more resources. This work is part
+of the GeneNetwork3 project.
+
+Pjotr Prins
 
 * EBI Summary Statistics
 
@@ -32,7 +38,27 @@ in turn points to the [[https://www.uniprot.org/uniprot/P51587][Uniprot]] resour
 Wikidata also has the start and en position of the gene for two
 reference genomes. hg38 is known as [[https://www.wikidata.org/wiki/Q20966585][GRCh38.p2]] (2014) which is now at
 p13 (2019). So, which one does EBI use? GRCh38.p12 according to the
-[[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]] (October 2019).
+[[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]]:
+
+:  curl 'https://www.ebi.ac.uk/gwas/rest/api/metadata' -i -H 'Accept: application/json'
+
+#+BEGIN_SRC js
+{
+  "_embedded" : {
+    "mappingMetadatas" : [ {
+      "ensemblReleaseNumber" : 97,
+      "genomeBuildVersion" : "GRCh38.p12",
+      "dbsnpVersion" : 151,
+      "usageStartDate" : "2019-07-03T13:00:03.625+0000"
+    } ]
+  }
+}
+#+END_SRC
+
+If we look at BRCA2 on p13 the location is
+chr13:32315480..32399672 while wikidata has it at p2
+chr13:32315086..32973805. In other words we'll need to fetch the
+latest somehow.
 
 The [[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]] suggests the API supports searching by gene which should make
 a lookup easier. In the full API docs this query is shown
@@ -42,3 +68,35 @@ a lookup easier. In the full API docs this query is shown
 results in a list of SNPs with top/curated associations. For summary statistics
 there is no lookup by gene yet - I have put in a request. So, for now
 we need to figure out the gene position first using the ENSEMBL API.
+
+Wikidata includes an ENSEMBL identifier which makes this relatively
+straightforward. In fact, that can even be skipped because ENSEMBL takes
+gene [[https://rest.ensembl.org/documentation/info/symbol_lookup][names]]. E.g.
+
+: curl 'https://rest.ensembl.org/lookup/symbol/homo_sapiens/BRCA2?expand=0&format=full' -H 'Content-type:application/json'
+
+#+BEGIN_SRC js
+  {"db_type":"core",
+   "end":32400266,
+   "biotype":"protein_coding",
+   "assembly_name":"GRCh38",
+   "start":32315086,"object_type":
+   "Gene","strand":1,
+   "description":"BRCA2 DNA repair associated [Source:HGNC Symbol;Acc:HGNC:1101]",
+   "seq_region_name":"13",
+   "source":"ensembl_havana",
+   "version":15,
+   "display_name":"BRCA2",
+   "logic_name":"ensembl_havana_gene_homo_sapiens",
+   "id":"ENSG00000139618",
+   "species":"homo_sapiens"}
+#+END_SRC
+
+Note that this uses another reference genome (again!).
+
+Coming to think of it, for summary statistics it should not matter too
+much because most associated SNPs will be outside the coding region
+anyway. The simple solution is to take anything that is 100Kb around
+the gene under study. In gene dense regions this may lead to problems,
+but hey, this is a discovery tool. We will use above coordinates to
+signify whether a SNP is (likely) outside the gene region.
