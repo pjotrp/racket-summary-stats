@@ -1,4 +1,5 @@
 #+TITLE: Mining summary statistics with Racket
+#+AUTHOR: Pjotr Prins
 
 * Table of Contents                                                     :TOC:
  - [[#ebi-summary-statistics][EBI Summary Statistics]]
@@ -8,19 +9,26 @@
    - [[#search-by-p-value][Search by p-value]]
    - [[#identify-trait--study][Identify trait & study]]
  - [[#racket-api][Racket API]]
+ - [[#install][Install]]
+ - [[#run-tests][Run tests]]
+ - [[#copyright][Copyright]]
 
 * EBI Summary Statistics
 
-EBI is providing an update of their old GWAS resource in the form of
-an API that can get candidates. They also provide the classic
-downloadable tabular data resources which we do not want to use for
-two reasons:
+EBI is providing an update of their GWAS resource in the form of an
+API that can get summary statistics of SNP candidates. They also
+provide the classic downloadable tabular data resources which we do
+not want to use for two reasons:
 
 1. We want to use the latest information automatically
 2. For EBI it is easier to track use and fund future initiatives
 
-The latter reason is more important than meets the eye. These
-resources are *not* free.
+The latter reason is more important than meets the eye. Despite
+appearances these resources are *not* free.
+
+Enjoy,
+
+Pjotr Prins (2019)
 
 * Fetching summary stats (outline)
 
@@ -273,3 +281,17 @@ p-value to 10e-3 renders 1,325 candidates in 60 seconds. That is after
 removing p-values set to -99.
 
 * Racket API
+
+
+* Install
+
+* Run tests
+
+To run the tests
+
+: racket tests/ebi-tests.rkt
+
+* Copyright
+
+Copyright (c) 2019 Pjotr Prins.  This code is published under the
+GPL3, see [[LICENSE]] for details.
