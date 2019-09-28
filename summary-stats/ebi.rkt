@@ -12,3 +12,12 @@
 (require net/url)
 (require net/uri-codec)
 (require memo)
+
+(define (ebi-json query)
+  (call/input-url (string->url (string-append "" (uri-encode query)))
+                  get-pure-port
+                  (lambda (port)
+                    (string->jsexpr (port->string port))
+                    )
+                  header
+                  ))

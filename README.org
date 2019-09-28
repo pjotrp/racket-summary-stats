@@ -16,9 +16,9 @@
 * EBI Summary Statistics
 
 EBI is providing an update of their GWAS resource in the form of an
-API that can get summary statistics of SNP candidates. They also
-provide the classic downloadable tabular data resources which we do
-not want to use for two reasons:
+API that can get summary statistics of SNP candidates (JSON output
+only). They also provide the classic downloadable tabular data
+resources which we do not want to use for two reasons:
 
 1. We want to use the latest information automatically
 2. For EBI it is easier to track use and fund future initiatives
@@ -32,6 +32,7 @@ Pjotr Prins (2019)
 
 * Fetching summary stats (outline)
 
+
 ** Start with a gene
 
 Let's start with mouse gene [[https://www.wikidata.org/wiki/Q14860079][Shh]] (human alias SHH) and rat [[https://www.wikidata.org/wiki/Q24381323][Brca2]] (human
@@ -41,10 +42,16 @@ in turn points to the [[https://www.uniprot.org/uniprot/P51587][Uniprot]] resour
 
 Wikidata also has the start and en position of the gene for two
 reference genomes. hg38 is known as [[https://www.wikidata.org/wiki/Q20966585][GRCh38.p2]] (2014) which is now at
-p13 (2019). So, which one does EBI use? GRCh38.p12 according to the
+*p13* (2019). So, which one does EBI use? GRCh38.p12 according to the
 [[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]]:
 
 :  curl 'https://www.ebi.ac.uk/gwas/rest/api/metadata' -i -H 'Accept: application/json'
+
+(Note that the API returns JSON even if you ask for XML. For this
+query requesting XML gives a correct notification: the resource
+identified by this request is only capable of generating responses
+with characteristics not acceptable according to the request "accept"
+headers).
 
 #+BEGIN_SRC js
 {
@@ -59,9 +66,9 @@ p13 (2019). So, which one does EBI use? GRCh38.p12 according to the
 }
 #+END_SRC
 
-If we look at BRCA2 on p13 the location is
-chr13:32315480..32399672 while wikidata has it at p2
-chr13:32315086..32973805. In other words we'll need to fetch the
+If we look at *BRCA2* on version *p13* the location is
+~chr13:32315480..32399672~ while wikidata has it at *p2*
+~chr13:32315086..32973805~. In other words we'll need to fetch the
 latest somehow.
 
 The [[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]] suggests the API supports searching by gene which should make
@@ -175,7 +182,7 @@ some reason the phenotype was included in these summary statistics.
 ** Search by p-value
 
 The API allows setting the p-value which for human GWAS should be in
-the order of 10-8. Let's try that with
+the order of 10e-8. Let's try that with
 
 : curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
 
@@ -223,8 +230,8 @@ the order of 10-8. Let's try that with
 
 ** Identify trait & study
 
-The trait EFO_0004611 is [[https://www.ebi.ac.uk/gwas/efotraits/EFO_0004611][low density lipoprotein cholesterol
-measurement]] with a p-value of 2.204e-08 and the [[https://www.ebi.ac.uk/gwas/rest/api/studies/GCST002222][European ancestry
+The trait *EFO_0004611* is [[https://www.ebi.ac.uk/gwas/efotraits/EFO_0004611][low density lipoprotein cholesterol
+measurement]] with a /p-value/ of ~2.204e-08~ and the [[https://www.ebi.ac.uk/gwas/rest/api/studies/GCST002222][European ancestry
 study]] contains about 100K individuals.
 
 To get at the description of the study we can use the included [[https://www.ebi.ac.uk/gwas/rest/api/studies/GCST002222][API
@@ -277,7 +284,7 @@ you may want to fetch an process the results as they come in.
 
 To do a full search on significant SNPs takes about 30 seconds and
 renders 30 SNP candidates with a reasonable p-value. Setting the
-p-value to 10e-3 renders 1,325 candidates in 60 seconds. That is after
+/p-value/ to ~10e-3~ renders 1,325 candidates in 60 seconds. That is after
 removing p-values set to -99.
 
 * Racket API
