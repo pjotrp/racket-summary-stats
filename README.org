@@ -92,11 +92,15 @@ gene [[https://rest.ensembl.org/documentation/info/symbol_lookup][names]]. E.g.
    "species":"homo_sapiens"}
 #+END_SRC
 
-Note that this uses another reference genome (again!).
+Note that this uses another reference genome (again!) so positions
+will be off.
 
 Coming to think of it, for summary statistics it should not matter too
 much because most associated SNPs will be outside the coding region
-anyway. The simple solution is to take anything that is 100Kb around
-the gene under study. In gene dense regions this may lead to problems,
-but hey, this is a discovery tool. We will use above coordinates to
-signify whether a SNP is (likely) outside the gene region.
+anyway. The simple solution is to take anything that is (say) 100Kbp
+around the gene under study. In fact that is what the old findByGene
+variant API does above. In gene dense regions this may lead to
+problems, but hey, this is a discovery tool. We will use above
+coordinates to signify whether a SNP is (likely) outside the gene
+region. So we can start with these positions and query the new
+summary statistics API with
