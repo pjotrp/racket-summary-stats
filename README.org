@@ -289,6 +289,65 @@ removing p-values set to -99.
 
 * Racket API
 
+To do a query in Racket Scheme you can paste something like this in
+the REPL (DrRacket or Emacs)
+
+#+BEGIN_SRC scheme
+(require json)
+(require net/url)
+(require net/uri-codec)
+
+(define header
+  '("Accept: application/json"))
+
+(define (ebi-json query)
+  (call/input-url (string->url (string-append "https://www.ebi.ac.uk/gwas/rest/api/" (uri-encode query)))
+                  get-pure-port
+                  (lambda (port)
+                    (string->jsexpr (port->string port))
+                    )
+                  header
+                  ))
+#+END_SRC
+
+The traditional way of unpacking
+
+#+BEGIN_SRC scheme
+(define ht (hash "apple" (hash "berry" 'red) "banana" 'yellow))
+(hash-ref (hash-ref ht "apple") "berry")
+'red
+#+END_SRC
+
+can be avoided with
+
+#+BEGIN_SRC scheme
+(require nested-hash)
+(nested-hash-ref ht "apple" "berry")
+'red
+#+END_SRC
+
+which is good enough for unpacking most JSON results
+
+The match operator may also be used. This returns
+
+#+BEGIN_SRC scheme
+(match ht [(hash-table ("apple" b)) (match b [(hash-table (_ c)) c])])
+'red
+#+END_SRC
+
+I have not found how to nest hash-table in a match pattern.
+
+Anyway, to get at the versions because they are in a list
+
+#+BEGIN_SRC scheme
+(define vers (nested-hash-ref meta '_embedded 'mappingMetadatas))
+(hash-ref (first vers) 'genomeBuildVersion)
+"GRCh38.p12"
+#+END_SRC
+
+: curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
+
+
 
 * Install
 
