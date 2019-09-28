@@ -1,19 +1,13 @@
-* Mining summary statistics with Racket
+#+TITLE: Mining summary statistics with Racket
 
-This module fetches summary statistics, starting with the new EBI API
-described at https://www.ebi.ac.uk/gwas/summary-statistics and
-https://www.ebi.ac.uk/gwas/rest/docs/api. The general idea is to start
-from a gene (alias) or genome segment and find relevant SNPs and
-associated phenotypes. These in turn we can use in GeneNetwork to
-locate interesting hits related to mouse/rat genes and phenotypes.
-
-This 'discovery' tool is based on Wikidata and EBI Ensembl API which
-are both relatively stable resources.
-
-In the near future we may be adding more resources. This work is part
-of the GeneNetwork3 project.
-
-Pjotr Prins
+* Table of Contents                                                     :TOC:
+ - [[#ebi-summary-statistics][EBI Summary Statistics]]
+ - [[#fetching-summary-stats-outline][Fetching summary stats (outline)]]
+   - [[#start-with-a-gene][Start with a gene]]
+   - [[#get-associated-snp][Get associated SNP]]
+   - [[#search-by-p-value][Search by p-value]]
+   - [[#identify-trait--study][Identify trait & study]]
+ - [[#racket-api][Racket API]]
 
 * EBI Summary Statistics
 
@@ -28,7 +22,9 @@ two reasons:
 The latter reason is more important than meets the eye. These
 resources are *not* free.
 
-* Start with a gene
+* Fetching summary stats (outline)
+
+** Start with a gene
 
 Let's start with mouse gene [[https://www.wikidata.org/wiki/Q14860079][Shh]] (human alias SHH) and rat [[https://www.wikidata.org/wiki/Q24381323][Brca2]] (human
 alias BRCA2). For the human variant the [[https://www.wikidata.org/wiki/Q17853272][wikidata page for BRCA2]] points
@@ -110,6 +106,8 @@ summary statistics API with this for your query:
 This will return all associations within that region, so variants will
 be duplicated. If you want to filter by p-value that is also possible.
 
+** Get associated SNP
+
 In the result list there is a URL for example for SNP
 
 : curl https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations/rs9534262
@@ -166,6 +164,8 @@ The population size under study here is about 16,500, only a few
 people will have had type I diabetes, the p-value is 0.82, but for
 some reason the phenotype was included in these summary statistics.
 
+** Search by p-value
+
 The API allows setting the p-value which for human GWAS should be in
 the order of 10-8. Let's try that with
 
@@ -212,6 +212,8 @@ the order of 10-8. Let's try that with
       },
 
 #+END_SRC
+
+** Identify trait & study
 
 The trait EFO_0004611 is [[https://www.ebi.ac.uk/gwas/efotraits/EFO_0004611][low density lipoprotein cholesterol
 measurement]] with a p-value of 2.204e-08 and the [[https://www.ebi.ac.uk/gwas/rest/api/studies/GCST002222][European ancestry
@@ -269,3 +271,5 @@ To do a full search on significant SNPs takes about 30 seconds and
 renders 30 SNP candidates with a reasonable p-value. Setting the
 p-value to 10e-3 renders 1,325 candidates in 60 seconds. That is after
 removing p-values set to -99.
+
+* Racket API
