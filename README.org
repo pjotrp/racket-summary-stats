@@ -103,4 +103,169 @@ variant API does above. In gene dense regions this may lead to
 problems, but hey, this is a discovery tool. We will use above
 coordinates to signify whether a SNP is (likely) outside the gene
 region. So we can start with these positions and query the new
-summary statistics API with
+summary statistics API with this for your query:
+
+: curl https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?bp_lower=32315086&bp_upper=32400266  -H 'Content-type:application/json'
+
+This will return all associations within that region, so variants will
+be duplicated. If you want to filter by p-value that is also possible.
+
+In the result list there is a URL for example for SNP
+
+: curl https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations/rs9534262
+
+To view/filter JSON the command line tool jq comes in handy
+
+: jq < summary.json
+
+#+BEGIN_SRC js
+    "associations": {
+      "0": {
+        "base_pair_location": 32315226,
+        "chromosome": 13,
+        "beta": null,
+        "effect_allele_frequency": null,
+        "ci_lower": null,
+        "ci_upper": null,
+        "other_allele": null,
+        "odds_ratio": null,
+        "p_value": 0.826716297590478,
+        "variant_id": "rs3092989",
+        "code": 14,
+        "effect_allele": null,
+        "study_accession": "GCST000392",
+        "trait": [
+          "EFO_0001359"
+        ],
+        "_links": {
+          "variant": {
+            "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations/rs3092989"
+          },
+          "trait": [
+            {
+              "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/traits/EFO_0001359"
+            }
+          ],
+          "self": {
+            "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations/rs3092989?study_accession=GCST000392
+"
+          },
+          "study": {
+            "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/studies/GCST000392"
+          }
+        }
+      }
+#+END_SRC
+
+Which lists the European ancestry study and a trait EFO_0001359 which
+is [[https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0001359#][type I diabetes mellitus]]: chronic condition characterized by
+minimal or absent production of insulin by the pancreas and is part of
+BRCA2.
+
+The population size under study here is about 16,500, only a few
+people will have had type I diabetes, the p-value is 0.82, but for
+some reason the phenotype was included in these summary statistics.
+
+The API allows setting the p-value which for human GWAS should be in
+the order of 10-8. Let's try that with
+
+: curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
+
+(which can also be written as p_upper=10E-8) and lists
+
+#+BEGIN_SRC js
+    "associations": {
+      "0": {
+        "effect_allele_frequency": null,
+        "variant_id": "rs4942505",
+        "beta": -0.0288,
+        "base_pair_location": 32389570,
+        "ci_lower": null,
+        "other_allele": "C",
+        "ci_upper": null,
+        "p_value": 2.204e-08,
+        "chromosome": 13,
+        "odds_ratio": null,
+        "code": 11,
+        "effect_allele": "T",
+        "study_accession": "GCST002222",
+        "trait": [
+          "EFO_0004611"
+        ],
+        "_links": {
+          "variant": {
+            "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations/rs4942505"
+          },
+          "trait": [
+            {
+              "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/traits/EFO_0004611"
+            }
+          ],
+          "self": {
+            "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations/rs4942505?study_accession=GCST002222
+"
+          },
+          "study": {
+            "href": "https://www.ebi.ac.uk/gwas/summary-statistics/api/studies/GCST002222"
+          }
+        }
+      },
+
+#+END_SRC
+
+The trait EFO_0004611 is [[https://www.ebi.ac.uk/gwas/efotraits/EFO_0004611][low density lipoprotein cholesterol
+measurement]] with a p-value of 2.204e-08 and the [[https://www.ebi.ac.uk/gwas/rest/api/studies/GCST002222][European ancestry
+study]] contains about 100K individuals.
+
+To get at the description of the study we can use the included [[https://www.ebi.ac.uk/gwas/rest/api/studies/GCST002222][API
+call]].  For the trait description, however, we can use the somewhat
+oddly formed
+
+: curl "https://www.ebi.ac.uk/ols/api/ontologies/efo/terms?iri=http://www.ebi.ac.uk/efo/EFO_0004611"
+
+#+BEGIN_SRC js
+    "terms": [
+      {
+        "iri": "http://www.ebi.ac.uk/efo/EFO_0004611",
+        "label": "low density lipoprotein cholesterol measurement",
+        "description": [
+          "The measurement of LDL cholesterol in blood used as a risk indicator for heart disease."
+        ],
+        "annotation": {
+          "database_cross_reference": [
+            "SNOMEDCT:113079009",
+            "NCIt:C105588"
+          ],
+          "gwas_trait": [
+            "true"
+          ],
+          "term editor": [
+            "Helen Parkinson"
+          ]
+        },
+        "synonyms": [
+          "LDL measurement"
+        ],
+        "ontology_name": "efo",
+        "ontology_prefix": "EFO",
+        "ontology_iri": "http://www.ebi.ac.uk/efo/efo.owl",
+        "is_obsolete": false,
+        "term_replaced_by": null,
+        "is_defining_ontology": true,
+        "has_children": true,
+        "is_root": false,
+        "short_form": "EFO_0004611",
+        "obo_id": "EFO:0004611",
+(...)
+#+END_SRC
+
+All the pieces are together here. We can find the SNPs associated with
+a gene (region). We can get info on the SNP and traits. The only thing
+to note is the SNP information is paged - so to get all SNPs we have
+to query page by page. This can take a while so if you have a (web) UI
+you may want to fetch an process the results as they come in.
+
+To do a full search on significant SNPs takes about 30 seconds and
+renders 30 SNP candidates with a reasonable p-value. Setting the
+p-value to 10e-3 renders 1,325 candidates in 60 seconds. That is after
+removing p-values set to -99.
