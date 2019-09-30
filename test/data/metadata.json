@@ -1,0 +1,24 @@
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Content-Type: application/json;charset=UTF-8
+Strict-Transport-Security: max-age=0
+Date: Mon, 30 Sep 2019 04:45:10 GMT
+X-Application-Context: application
+Expires: 0
+X-XSS-Protection: 1; mode=block
+Pragma: no-cache
+Transfer-Encoding: chunked
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+  "_embedded" : {
+    "mappingMetadatas" : [ {
+      "ensemblReleaseNumber" : 97,
+      "genomeBuildVersion" : "GRCh38.p12",
+      "dbsnpVersion" : 151,
+      "usageStartDate" : "2019-07-03T13:00:03.625+0000"
+    } ]
+  }
+}

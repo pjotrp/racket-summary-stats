@@ -1,0 +1,3 @@
+#! /bin/bash
+
+curl 'https://www.ebi.ac.uk/gwas/rest/api/metadata' -i -H 'Accept: application/json' > metadata.json

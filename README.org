@@ -357,12 +357,17 @@ In the next step we fetch SNPs for BRCA2. Remember the API URL was
 
 : curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
 
-so we create a procedure ~(ebi-sumstat-chr-pos-json chr start stop)~
+so we create ~(ebi-sumstat-chr-pos-json chr start stop)~
 that returns the full result and handles the paging. So we can do
 
 #+BEGIN_SRC scheme
 (ebi-sumstat-chr-pos-json "13" 32315086 32400266)
 #+END_SRC
+
+The result is the full set. This looks good, but why return a JSON
+structure (even if it is an ~jsexp~)? Also we probably don't need all
+data, so a transform and filter makes sense that get executed when
+data flows in.
 
 
 * Install

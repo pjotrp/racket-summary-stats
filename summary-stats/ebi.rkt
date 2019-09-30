@@ -6,7 +6,8 @@
 ;; restarting the process.
 ;;
 
-(provide ebi-sumstat-genome-build
+(provide genome-build
+         ebi-sumstat-genome-build
          ebi-sumstat-chr-pos-json)
 
 (require json)
@@ -63,6 +64,11 @@
   }
 }
 |#
+
+(define (genome-build metadata)
+    (let ([vers (nested-hash-ref metadata '_embedded 'mappingMetadatas)])
+      (hash-ref (first vers) 'genomeBuildVersion)
+      ))
 
 (define (ebi-sumstat-genome-build)
   (let ([meta (ebi-gwas-json "metadata")])
