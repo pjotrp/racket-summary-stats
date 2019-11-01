@@ -35,12 +35,10 @@
    "https://www.ebi.ac.uk/gwas/summary-statistics/api/" query))
 
 (define (ebi-sumstat-string query)
-  (call/input-url (string->url (ebi-sumstat-url query)
+  (call/input-url (string->url (ebi-sumstat-url query))
                   get-pure-port
-                  (lambda (port)
-                    (port->string port))
-                  header
-                  )))
+                  (lambda (in)
+                    (port->string in))))
 
 (define (ebi-sumstat-json query)
   (call/input-url (string->url (ebi-sumstat-url query))
@@ -117,9 +115,9 @@
       }
 |#
 
-; curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=20&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
+; curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=20&bp_upper=32400266&p_upper=1e-8&p_lower=-0.0"
 
 (define (ebi-sumstat-chr-pos-json chr startpos endpos)
-  (let ([json-res (ebi-sumstat-json (string-append "chromosomes/" chr "/associations?bp_lower=" (number->string startpos) "&bp_upper=" (number->string endpos) "&p_upper=0.0000001&p_lower=-0.0"))])
+  (let ([json-res (ebi-sumstat-string (string-append "chromosomes/" chr "/associations?size=10000&bp_lower=" (number->string startpos) "&bp_upper=" (number->string endpos) "&p_upper=1e-8&p_lower=-0.0"))])
     json-res
     ))

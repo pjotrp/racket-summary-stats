@@ -34,7 +34,6 @@ Pjotr Prins (2019)
 
 * Fetching summary stats (outline)
 
-
 ** Start with a gene
 
 Let's start with mouse gene [[https://www.wikidata.org/wiki/Q14860079][Shh]] (human alias SHH) and rat [[https://www.wikidata.org/wiki/Q24381323][Brca2]] (human
@@ -68,10 +67,15 @@ headers).
 }
 #+END_SRC
 
+Note: this metadata tells us the GWAS REST API uses
+GRCh38.p12. Summary statistics API, however, may be different (but
+probably not far off).
+
 If we look at *BRCA2* on version *p13* the location is
 ~chr13:32315480..32399672~ while wikidata has it at *p2*
 ~chr13:32315086..32973805~. In other words we'll need to fetch the
-latest somehow.
+latest somehow (though the difference may not be too critical for our
+purposes).
 
 The [[https://www.ebi.ac.uk/gwas/docs/faq][FAQ]] suggests the API supports searching by gene which should make
 a lookup easier. In the full API docs this query is shown
@@ -83,8 +87,8 @@ there is no lookup by gene yet - I have put in a request. So, for now
 we need to figure out the gene position first using the ENSEMBL API.
 
 Wikidata includes an ENSEMBL identifier which makes this relatively
-straightforward. In fact, that can even be skipped because ENSEMBL takes
-gene [[https://rest.ensembl.org/documentation/info/symbol_lookup][names]]. E.g.
+straightforward. In fact, that can even be skipped because ENSEMBL
+takes gene [[https://rest.ensembl.org/documentation/info/symbol_lookup][names]]. E.g.
 
 : curl 'https://rest.ensembl.org/lookup/symbol/homo_sapiens/BRCA2?expand=0&format=full' -H 'Content-type:application/json'
 
@@ -108,20 +112,25 @@ gene [[https://rest.ensembl.org/documentation/info/symbol_lookup][names]]. E.g.
 Note that this uses another reference genome (again!) so positions
 will be off.
 
-Coming to think of it, for summary statistics it should not matter too
-much because most associated SNPs will be outside the coding region
-anyway. The simple solution is to take anything that is (say) 100Kbp
-around the gene under study. In fact that is what the old findByGene
-variant API does above. In gene dense regions this may lead to
-problems, but hey, this is a discovery tool. We will use above
-coordinates to signify whether a SNP is (likely) outside the gene
-region. So we can start with these positions and query the new
-summary statistics API with this for your query:
+Coming to think of it, for summary statistics it should not
+matter too much because most associated SNPs will be outside the
+coding region anyway. The simple solution is to take anything
+that is (say) 100Kbp around the gene under study. In fact that is
+what the old findByGene variant API does above. In gene dense
+regions this may lead to problems, but hey, this is a discovery
+tool. We will use above coordinates to signify whether a SNP is
+(likely) outside the gene region. So we can start with these
+positions and query the recently added summary statistics API
+with this for your query:
 
-: curl https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?bp_lower=32315086&bp_upper=32400266  -H 'Content-type:application/json'
+: curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?bp_lower=32315086&bp_upper=32400266"
 
-This will return all associations within that region, so variants will
-be duplicated. If you want to filter by p-value that is also possible.
+If you want to look at JSON in a nice way pipe the output into
+the excellent [[https://stedolan.github.io/jq/][jq tool]].
+
+This will return all associations within that region, so variants
+will be duplicated. If you want to filter by p-value that is also
+possible (see below).
 
 ** Get associated SNP
 
@@ -172,23 +181,25 @@ To view/filter JSON the command line tool jq comes in handy
       }
 #+END_SRC
 
-Which lists the European ancestry study and a trait EFO_0001359 which
-is [[https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0001359#][type I diabetes mellitus]]: chronic condition characterized by
-minimal or absent production of insulin by the pancreas and is part of
-BRCA2.
+Which lists the European ancestry study and a trait EFO_0001359
+which is [[https://www.ebi.ac.uk/ols/ontologies/efo/terms?iri=http%3A%2F%2Fwww.ebi.ac.uk%2Fefo%2FEFO_0001359#][type I diabetes mellitus]]: chronic condition
+characterized by minimal or absent production of insulin by the
+pancreas and is part of BRCA2.
 
 The population size under study here is about 16,500, only a few
-people will have had type I diabetes, the p-value is 0.82, but for
-some reason the phenotype was included in these summary statistics.
+people will have had type I diabetes, the p-value is a high 0.82,
+but for some reason this candidate was included in these summary
+statistics.
 
 ** Search by p-value
 
-The API allows setting the p-value which for human GWAS should be in
-the order of 10e-8. Let's try that with
+The API allows setting the p-value which for human GWAS should be
+in the order of 10e-8. Let's try that with
 
 : curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
 
-(which can also be written as p_upper=10E-8) and lists
+(which can also be written as p_upper=10E-8) and lists 100
+candidates starting from 20:
 
 #+BEGIN_SRC js
     "associations": {
@@ -278,19 +289,35 @@ oddly formed
 (...)
 #+END_SRC
 
-All the pieces are together here. We can find the SNPs associated with
-a gene (region). We can get info on the SNP and traits. The only thing
-to note is the SNP information is paged - so to get all SNPs we have
-to query page by page. This can take a while so if you have a (web) UI
-you may want to fetch an process the results as they come in.
+At this point all the pieces are together here. We can get a gene
+region. We can find the SNPs associated with a gene region. We
+can get info on the SNP and traits. The only thing to note is the
+SNP information is paged - so to get all SNPs we have to query
+page by page. This can take a while so if you have a (web) UI you
+may want to fetch an process the results as they come in.
 
-To do a full search on significant SNPs takes about 30 seconds and
-renders 30 SNP candidates with a reasonable p-value. Setting the
-/p-value/ to ~10e-3~ renders 1,325 candidates in 60 seconds. That is after
-removing p-values set to -99.
+To do a full search on significant SNPs takes about 30 seconds
+and renders 30 SNP candidates with a reasonable p-value. Setting
+the /p-value/ to ~10e-3~ renders 1,325 candidates in 60
+seconds. That is after removing p-values set to -99. When you
+follow the link for a SNP at p-value -99 the EBI server gives an
+error.
+
+To zoom in on results with jq use
+
+: cat test.json |jq '._embedded.associations."90"'
+
+to get the 90th record and to show all p-values
+
+: cat test.json |jq '._embedded.associations | map(.p_value)'
+
+and to filter on p_values not -99
+
+: cat test.json |jq '._embedded.associations | map(select(.p_value != -99))'
+
+
 
 * Racket API
-
 ** Fetching JSON
 
 To do a query in Racket Scheme you can paste something like this in
@@ -353,9 +380,56 @@ Anyway, to get at the versions because they are in a list
 
 ** Fetch SNPs
 
-In the next step we fetch SNPs for BRCA2. Remember the API URL was
+In the next step we fetch SNPs for BRCA2. The summary statistics
+web interface [[https://www.ebi.ac.uk/gwas/genes/BRCA2][BRCA2 search]] returns 23 candidates and 20 studies.
+In fact you can download the file and there are only 4 SNPs of
+interest
 
-: curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=0.0000001&p_lower=-0.0"
+
+#+BEGIN_SRC
+cat ~/Downloads/gwas-association-downloaded_2019-11-01-ensemblMappedGenes_BRCA2.tsv |cut -f22|sort|uniq
+rs11571818
+rs11571833
+rs1799955
+rs4942486
+#+END_SRC
+
+The phenotypes show
+
+#+BEGIN_SRC
+cat ~/Downloads/gwas-association-downloaded_2019-11-01-ensemblMappedGenes_BRCA2.tsv |cut -f8|sort|uniq
+Breast cancer
+Breast cancer (estrogen-receptor negative)
+Cancer
+Cancer (pleiotropy)
+LDL cholesterol
+LDL cholesterol levels
+Low density lipoprotein cholesterol levels
+Lung cancer
+Lung cancer in ever smokers
+Small cell lung carcinoma
+Squamous cell lung carcinoma
+#+END_SRC
+
+This is useful information for testing our API. The first version
+misses one and adds a few. There are 567 results with 7 that are
+not -99.
+
+#+BEGIN_SRC
+    "variant_id": "rs9534262",
+    "variant_id": "rs4942486",
+    "variant_id": "rs7330025",
+    "variant_id": "rs190434310",
+    "variant_id": "rs11571815",
+    "variant_id": "rs11571818",
+    "variant_id": "rs11571833",
+#+END_SRC
+
+
+Remember the API URL was
+
+: curl "https://www.ebi.ac.uk/gwas/summary-statistics/api/chromosomes/13/associations?start=20&bp_lower=32315086&size=100&bp_upper=32400266&p_upper=1e-8&p_lower=-0.0"
+
 
 so we create ~(ebi-sumstat-chr-pos-json chr start stop)~
 that returns the full result and handles the paging. So we can do
@@ -369,6 +443,7 @@ structure (even if it is an ~jsexp~)? Also we probably don't need all
 data, so a transform and filter makes sense that get executed when
 data flows in.
 
+To look at a trait we can use a link like https://www.ebi.ac.uk/ols/api/ontologies/efo/terms?iri=http://www.ebi.ac.uk/efo/EFO_0000305
 
 * Install
 
@@ -376,7 +451,11 @@ data flows in.
 
 To run the tests
 
-: racket tests/ebi-tests.rkt
+: racket test/ebi-test.rkt
+
+and with internet access
+
+: racket test/ebi-web-test.rkt
 
 * Copyright
 
