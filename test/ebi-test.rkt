@@ -20,7 +20,7 @@
   (dropf lst non-empty-string?)
   )
 
-(define (read->buf fn)
+(define (read->list fn)
   (with-input-from-file fn
     (lambda ()
       (for/list ([line (in-lines)])
@@ -29,13 +29,14 @@
 
 ; Path -> (Listof String)
 (define metadata
-  (read->buf "data/ebi-api-metadata.json"))
+  (read->list "data/ebi-api-metadata.json"))
 
 (test-case
  "EBI Summary Statistics Tests"
-                                        ; (define in (open-input-file "test/data/metadata.json"))
+ ; (define in (open-input-file "test/data/metadata.json"))
  (check-equal? (first metadata) "HTTP/1.1 200 OK")
- (define meta (string->jsexpr (string-join (skip-header metadata))))
+ (define meta (string->jsexpr(string-join(skip-header metadata))))
  (check-equal? (genome-build meta) "GRCh38.p12")
- (display (read->buf "data/ebi-sumstats-brca2.json"))
+ (display (ebi-sumstat->snp-records (read->list "data/ebi-sumstats-brca2.json")))
+ #t
 )

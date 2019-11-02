@@ -121,3 +121,19 @@
   (let ([json-res (ebi-sumstat-string (string-append "chromosomes/" chr "/associations?size=10000&bp_lower=" (number->string startpos) "&bp_upper=" (number->string endpos) "&p_upper=1e-8&p_lower=-0.0"))])
     json-res
     ))
+
+; Use implementation independent struct
+(struct snp-record
+  (snp-name snp-variant chr pos p-value gene snp-uri trait trait-uri))
+
+#|
+
+Converts a JSON sumstats result buffer-list and filters
+out missing p-values (-99). Returns a simplified set.
+
+|#
+
+(provide ebi-sumstat->snp-records)
+
+(define (ebi-sumstat->snp-records buf)
+  (compose string->jsexpr string-join) buf)
