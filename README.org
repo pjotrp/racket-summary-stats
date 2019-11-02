@@ -443,7 +443,17 @@ structure (even if it is an ~jsexp~)? Also we probably don't need all
 data, so a transform and filter makes sense that get executed when
 data flows in.
 
-To look at a trait we can use a link like https://www.ebi.ac.uk/ols/api/ontologies/efo/terms?iri=http://www.ebi.ac.uk/efo/EFO_0000305
+Next steps:
+
++ Add unit test infra that can read data from file
++ Use jsexp to filter out p-value is -99
++ return snp, variant, chr, pos, p-value, trait
++ add description for trait
+  - we can use a link like https://www.ebi.ac.uk/ols/api/ontologies/efo/terms?iri=http://www.ebi.ac.uk/efo/EFO_0000305
++ cache result
++ add to GN3 and provide to GN2 web interface
+
+API https://www.ebi.ac.uk/gwas/summary-statistics/docs/
 
 * Install
 
