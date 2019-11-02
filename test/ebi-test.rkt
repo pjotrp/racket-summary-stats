@@ -2,24 +2,34 @@
 
 #|
  This module contains tests that do not require internet access
+
+ Run with
+
+   raco test test/ebi-test.rkt
+
 |#
 
 (require json)
 (require "../summary-stats/ebi.rkt")
 
 (require rackunit)
+(require rackunit/log)
 
 ; Listof String -> Listof String
 (define (skip-header lst)
   (dropf lst non-empty-string?)
   )
 
-; Path -> (Listof String)
-(define metadata
-  (with-input-from-file "test/data/metadata.json"
+(define (read->buf fn)
+  (with-input-from-file fn
     (lambda ()
       (for/list ([line (in-lines)])
         line))))
+
+
+; Path -> (Listof String)
+(define metadata
+  (read->buf "data/ebi-api-metadata.json"))
 
 (test-case
  "EBI Summary Statistics Tests"
@@ -27,4 +37,5 @@
  (check-equal? (first metadata) "HTTP/1.1 200 OK")
  (define meta (string->jsexpr (string-join (skip-header metadata))))
  (check-equal? (genome-build meta) "GRCh38.p12")
- )
+ (display (read->buf "data/ebi-sumstats-brca2.json"))
+)

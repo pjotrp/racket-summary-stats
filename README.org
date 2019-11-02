@@ -28,6 +28,9 @@ resources which we do not want to use for two reasons:
 The latter reason is more important than meets the eye. Despite
 appearances these resources are *not* free.
 
+This code is written in [[https://racket-lang.org/][Racket]]. Why Racket? To me Racket is
+everything Python and Ruby have to offer and more.
+
 Enjoy,
 
 Pjotr Prins (2019)
